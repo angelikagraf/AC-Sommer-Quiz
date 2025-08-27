@@ -33,11 +33,8 @@
 <body>
   <h1>Grosses AC-Sommer-GeoGuesser Quiz</h1>
 
-  <form name="quiz" method="POST" data-netlify="true" onsubmit="prepareSubmission()">
-    <input type="hidden" name="username" id="hidden-username">
-    <div id="quiz-container"></div>
-    <button type="submit">Antworten abschicken</button>
-  </form>
+<form name="quiz" method="POST" data-netlify="true" action="thank-you.html" onsubmit="prepareSubmission()">
+
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
