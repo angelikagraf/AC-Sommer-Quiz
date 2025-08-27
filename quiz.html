@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Grosses AC-Sommer Quiz</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    .image-block {
+      margin-bottom: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 20px;
+    }
+    img {
+      max-width: 300px;
+      height: auto;
+      display: block;
+      margin-bottom: 10px;
+    }
+    select {
+      margin: 5px;
+      padding: 5px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Grosses AC-Sommer-GeoGuesser Quiz</h1>
+
+  <form name="quiz" method="POST" data-netlify="true" onsubmit="prepareSubmission()">
+    <input type="hidden" name="username" id="hidden-username">
+    <div id="quiz-container"></div>
+    <button type="submit">Antworten abschicken</button>
+  </form>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const username = urlParams.get('username') || '';
+    document.getElementById('hidden-username').value = username;
+
+    const people = ['Angelika','Dave','Iordanis','Joe','Klaudia','Martina','Michael','Pascal','Roman','Sara E.','Sarah D.','Svenja','Xavier'];
+    const places = ['Aleria, Korsika','Centovalli, Tessin', 'Champex-Lac, Wallis','China','Dauberhorn, Leukerbad','Lyon, Frankreich', 'Nusfjord, Norwegen','Ostsee','Paradiso,Lugano','Prag, Tschechien','Sädvvájávrre, Lappland','Sintra, Quinta da Regaleira', '(42.01007, 9.32974), Korsika'];
+    const images = ['images/img1.jfif', 'images/img2.jpeg', 'images/img3.jpg','images/img4.jpg','images/img5.jpg','images/img13.jpg','images/img6.jfif','images/img7.jpg','images/img8.jfif','images/img9.jpg','images/img10.jfif','images/img11.jpg','images/img12.jpg'];
+
+    let selections = images.map(() => ({ person: null, place: null }));
+
+    function updateDropdowns() {
+      document.querySelectorAll('.person-select, .place-select').forEach(select => {
+        const type = select.classList.contains('person-select') ? 'person' : 'place';
+        const index = parseInt(select.dataset.index);
+        const usedValues = selections
+          .filter((_, i) => i !== index)
+          .map(sel => sel[type])
+          .filter(Boolean);
+        const available = (type === 'person' ? people : places).filter(val => !usedValues.includes(val));
+        const currentVal = selections[index][type];
+
+        select.innerHTML = `<option value="">Select ${type}</option>` +
+          available.map(val => `<option value="${val}" ${val === currentVal ? 'selected' : ''}>${val}</option>`).join('');
+
+        if (currentVal && !available.includes(currentVal)) {
+          selections[index][type] = null;
+        }
+      });
+    }
+
+    function renderQuiz() {
+      const container = document.getElementById('quiz-container');
+      container.innerHTML = '';
+      images.forEach((img, i) => {
+        const div = document.createElement('div');
+        div.className = 'image-block';
+        div.innerHTML = `
+          <img src="${img}" alt="Image ${i+1}">
+          <label>Hinter der Kamera steht
+            <select class="person-select" data-index="${i}"></select>
+          </label>
+          <label> in
+            <select class="place-select" data-index="${i}"></select>
+          </label>
+        `;
+        container.appendChild(div);
+      });
+
+      document.querySelectorAll('.person-select, .place-select').forEach(select => {
+        select.addEventListener('change', () => {
+          const index = parseInt(select.dataset.index);
+          const type = select.classList.contains('person-select') ? 'person' : 'place';
+          selections[index][type] = select.value || null;
+          updateDropdowns();
+        });
+      });
+
+      updateDropdowns();
+    }
+
+    function prepareSubmission() {
+      const form = document.forms['quiz'];
+      [...form.querySelectorAll('input[type="hidden"]')].forEach(el => {
+        if (!el.name.startsWith('image_') && el.name !== 'username') el.remove();
+      });
+
+      selections.forEach((sel, i) => {
+        const personInput = document.createElement('input');
+        personInput.type = 'hidden';
+        personInput.name = `image_${i+1}_person`;
+        personInput.value = sel.person || '';
+        form.appendChild(personInput);
+
+        const placeInput = document.createElement('input');
+        placeInput.type = 'hidden';
+        placeInput.name = `image_${i+1}_place`;
+        placeInput.value = sel.place || '';
+        form.appendChild(placeInput);
+      });
+    }
+
+    renderQuiz();
+  </script>
+</body>
+</html>
